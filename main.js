@@ -1,3 +1,5 @@
+"use strict";
+
 const Player = (sign) => {
     this.sign = sign;
 
@@ -19,7 +21,7 @@ const Gameboard = (() => {
 
     const getMarker = (index) => {
         if (index > board.length) {
-            return
+            return;
         }
         return board[index];
     };
@@ -34,7 +36,7 @@ const Gameboard = (() => {
         setMarker,
         getMarker,
         resetBoard
-    }
+    };
 })();
 
 const GameController = (() => {
@@ -46,11 +48,11 @@ const GameController = (() => {
     // double check this one
     const getPlayerSign = () => {
         if (round % 2 === 1) {
-        return playerX.getMarker();
+        return playerX.getSign();
         } else {
-        return playerO.getMarker();
+        return playerO.getSign();
         }
-    }
+    };
 
     const checkWinner = (markerIndex) => {
         const winCondition = [
@@ -75,7 +77,7 @@ const GameController = (() => {
      return isOver;   
     };
 
-    const reset = () => {
+    const resetGame = () => {
         round = 1;
         isOver = false;
     };
@@ -88,15 +90,61 @@ const GameController = (() => {
             return;
         }
         if (round === 9) {
-            DisplayController.setResult("Tie!");
+            DisplayController.setResult("Tie");
             isOver = true;
             return;
         }
         round++;
         DisplayController.setMessage(`${getPlayerSign()}'s turn`);
     };
+    return {
+        getIsOver,
+        resetGame,
+        playRound
+    };
 })();
 
 const DisplayController = (() => {
+    const markerElements = document.querySelectorAll('.marker');
+    const messageElement = document.getElementById('message');
+    const restartButton = document.getElementById('restart-button');
 
-})
+    markerElements.forEach((marker) => {
+        marker.addEventListener('click', (e) => {
+            if (GameController.getIsOver() || e.target.textContent !== "") {
+                return;
+            }
+            GameController.playRound(parseInt(e.target.dataset.index));
+            updateGameboard();
+        });
+    });
+
+    restartButton.addEventListener('click', (e) => {
+        Gameboard.resetBoard();
+        GameController.resetGame();
+        updateGameboard();
+        setMessage("X's turn");
+    });
+
+    const updateGameboard = () => {
+        for (let i = 0; i < markerElements.length; i++) {
+            markerElements[i].textContent = Gameboard.getMarker(i);
+        }
+    };
+
+    const setMessage = (message) => {
+        messageElement.textContent = message;
+    };
+
+    const setResult = (winner) => {
+        if (winner === "Tie") {
+            setMessage("It's a Tie!");
+        } else {
+            setMessage(`${winner} has won!`);
+        }
+    };
+    return {
+        setResult,
+        setMessage
+    };
+})();
